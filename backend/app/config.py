@@ -1,9 +1,11 @@
 from functools import lru_cache
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    environment: str = "development"
     database_url: str = "sqlite:///./civicconnect.db"
     secret_key: str = "civicconnect-dev-secret-change-me"
     access_token_expire_minutes: int = 1440
@@ -16,6 +18,12 @@ class Settings(BaseSettings):
     sla_hours: int = 48
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @model_validator(mode="after")
+    def require_persistent_production_database(self):
+        if self.environment.lower() in {"production", "prod"} and self.database_url.lower().startswith("sqlite"):
+            raise ValueError("Production requires a persistent PostgreSQL DATABASE_URL; SQLite is disabled.")
+        return self
 
 
 @lru_cache

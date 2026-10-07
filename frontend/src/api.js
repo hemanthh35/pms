@@ -13,6 +13,16 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+api.interceptors.response.use((response) => response, (error) => {
+  const requestUrl = error.config?.url || ''
+  if (error.response?.status === 401 && !requestUrl.includes('/auth/login') && !requestUrl.includes('/auth/register')) {
+    localStorage.removeItem('civicconnect_token')
+    localStorage.removeItem('civicconnect_user')
+    if (window.location.pathname !== '/login') window.location.assign('/login?reason=session-expired')
+  }
+  return Promise.reject(error)
+})
+
 export const authApi = {
   login: (payload) => api.post('/auth/login', payload),
   register: (payload) => api.post('/auth/register', payload),

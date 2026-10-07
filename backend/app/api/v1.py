@@ -112,7 +112,7 @@ def register(payload: RegisterRequest, db: DB):
 @router.post("/auth/login", response_model=AuthResponse)
 def login(payload: AuthRequest, db: DB):
     user = db.scalar(select(User).where(User.email == payload.email.lower()))
-    if not user or not verify_password(payload.password, user.password_hash):
+    if not user or not user.is_active or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return AuthResponse(access_token=create_access_token(user), user=user)
 

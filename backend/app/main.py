@@ -5,14 +5,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from .api.v1 import router
 from .config import get_settings
 from .database import Base, SessionLocal, engine
 from .models import Category, Department, User
 from .scheduler import start_scheduler
-from .security import hash_password
 
 
 DEFAULT_DEPARTMENTS = [
@@ -41,14 +40,6 @@ def seed_data() -> None:
         for name, sla in DEFAULT_CATEGORIES:
             if not db.scalar(select(Category).where(Category.name == name)):
                 db.add(Category(name=name, default_sla_hours=sla, description=f"{name} complaints"))
-        demo_users = [
-            ("Demo Citizen", "citizen@civicconnect.app", "citizen123", "citizen"),
-            ("Ravi Kumar", "officer@civicconnect.app", "officer123", "officer"),
-            ("System Admin", "admin@civicconnect.app", "admin123", "admin"),
-        ]
-        for name, email, password, role in demo_users:
-            if not db.scalar(select(User).where(User.email == email)):
-                db.add(User(name=name, email=email, password_hash=hash_password(password), role=role))
         db.commit()
     finally:
         db.close()
@@ -74,7 +65,12 @@ app.include_router(router, prefix="/api/v1")
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "civicconnect-api"}
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="Database unavailable") from exc
+    return {"status": "ok", "service": "civicconnect-api", "database": engine.dialect.name}
 
 
 # In the Render monolith, FastAPI serves the compiled React app from the same

@@ -15,9 +15,10 @@ Browser → Render Web Service → FastAPI
 2. In Render choose **New → Blueprint**.
 3. Select the repository and branch `main`.
 4. Render reads `render.yaml` and builds `Dockerfile`.
-5. Check `/health` after the deploy.
+5. Set `DATABASE_URL` in Render to the Supabase PostgreSQL connection string.
+6. Check `/health` after the deploy. It now verifies the database connection.
 
-The service uses SQLite and uploaded complaint images under `/var/data`, which is attached as a persistent disk. A paid Render plan is required for persistent disks. For a disposable demo, remove the `disk` block and use an external database before storing real user data.
+Production uses Supabase PostgreSQL for complaint data. The Render persistent disk at `/var/data` stores uploaded images only. A paid Render plan is required for that disk. Production refuses to start with SQLite, preventing a deploy from silently creating a new empty database.
 
 ## Local development
 

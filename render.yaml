@@ -11,6 +11,8 @@ services:
     envVars:
       - key: SECRET_KEY
         generateValue: true
+      - key: ENVIRONMENT
+        value: production
       - key: DATABASE_URL
         sync: false
       - key: UPLOADS_DIR

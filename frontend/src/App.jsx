@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { AlertCircle, ArrowRight, BarChart3, Bell, Camera, Check, ChevronRight, CircleUserRound, ClipboardList, Clock3, FileText, Home, Leaf, LocateFixed, LogOut, Map as MapIcon, Menu, Plus, ShieldCheck, Sparkles, UserRound, X } from 'lucide-react'
+import { AlertCircle, ArrowRight, BarChart3, Bell, Camera, Check, ChevronRight, CircleUserRound, ClipboardList, Clock3, Eye, EyeOff, FileText, Home, Leaf, LocateFixed, LogOut, Map as MapIcon, Menu, Plus, ShieldCheck, Sparkles, UserRound, X } from 'lucide-react'
 import { MapContainer, CircleMarker, Popup, TileLayer, useMap } from 'react-leaflet'
 import { adminApi, API_ORIGIN, authApi, complaintApi, notificationApi } from './api'
 import { enablePushNotifications } from './push'
@@ -56,15 +56,20 @@ function BrandMark() { return <><span className="brand-mark"><Leaf size={17} /><
 function Brand() { return <Link to="/" className="brand"><BrandMark /></Link> }
 
 function Login() {
-  const { login } = useAuthContext(); const navigate = useNavigate(); const [form, setForm] = useState({ email: 'citizen@civicconnect.app', password: 'citizen123' }); const [error, setError] = useState(''); const [loading, setLoading] = useState(false)
+  const { login } = useAuthContext(); const navigate = useNavigate(); const [form, setForm] = useState({ email: '', password: '' }); const [error, setError] = useState(''); const [loading, setLoading] = useState(false)
   const submit = async (event) => { event.preventDefault(); setError(''); setLoading(true); try { const response = await authApi.login(form); login(response); navigate(`/${response.data.user.role}/home`) } catch (err) { setError(err.response?.data?.detail || 'Unable to sign in. Check the API is running.') } finally { setLoading(false) } }
-  return <AuthLayout title="Welcome back" subtitle="Sign in to keep your city moving forward."><form className="auth-form" onSubmit={submit}>{error && <ErrorMessage>{error}</ErrorMessage>}<label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label><label>Password<input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label><button className="button button-primary button-full" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'} <ArrowRight size={17} /></button></form><div className="demo-login"><strong>Demo accounts</strong><span>Citizen: citizen@civicconnect.app / citizen123</span><span>Officer: officer@civicconnect.app / officer123</span><span>Admin: admin@civicconnect.app / admin123</span></div><p className="auth-footer">New to CivicConnect? <Link to="/register">Create an account</Link></p></AuthLayout>
+  return <AuthLayout title="Welcome back" subtitle="Sign in to keep your city moving forward."><form className="auth-form" onSubmit={submit}>{error && <ErrorMessage>{error}</ErrorMessage>}<label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" required /></label><PasswordField value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete="current-password" /><button className="button button-primary button-full" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'} <ArrowRight size={17} /></button></form><p className="auth-footer">New to CivicConnect? <Link to="/register">Create an account</Link></p></AuthLayout>
 }
 
 function Register() {
   const { login } = useAuthContext(); const navigate = useNavigate(); const [form, setForm] = useState({ name: '', email: '', password: '' }); const [error, setError] = useState(''); const [loading, setLoading] = useState(false)
   const submit = async (event) => { event.preventDefault(); setError(''); setLoading(true); try { const response = await authApi.register(form); login(response); navigate('/citizen/home') } catch (err) { setError(err.response?.data?.detail || 'Unable to create your account.') } finally { setLoading(false) } }
-  return <AuthLayout title="Join the movement" subtitle="A better city starts with noticing what needs care."><form className="auth-form" onSubmit={submit}>{error && <ErrorMessage>{error}</ErrorMessage>}<label>Your name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label><label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label><label>Password<input type="password" minLength="6" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required /></label><button className="button button-primary button-full" disabled={loading}>{loading ? 'Creating account…' : 'Create citizen account'} <ArrowRight size={17} /></button></form><p className="auth-footer">Already have an account? <Link to="/login">Sign in</Link></p></AuthLayout>
+  return <AuthLayout title="Join the movement" subtitle="A better city starts with noticing what needs care."><form className="auth-form" onSubmit={submit}>{error && <ErrorMessage>{error}</ErrorMessage>}<label>Your name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" required /></label><label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" required /></label><PasswordField value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} minLength="6" autoComplete="new-password" /><button className="button button-primary button-full" disabled={loading}>{loading ? 'Creating account…' : 'Create citizen account'} <ArrowRight size={17} /></button></form><p className="auth-footer">Already have an account? <Link to="/login">Sign in</Link></p></AuthLayout>
+}
+
+function PasswordField({ value, onChange, minLength, autoComplete }) {
+  const [visible, setVisible] = useState(false)
+  return <label>Password<span className="password-field"><input type={visible ? 'text' : 'password'} value={value} onChange={onChange} minLength={minLength} autoComplete={autoComplete} required /><button type="button" className="password-toggle" onClick={() => setVisible((current) => !current)} aria-label={visible ? 'Hide password' : 'Show password'}>{visible ? <EyeOff size={17} /> : <Eye size={17} />}</button></span></label>
 }
 
 function AuthLayout({ title, subtitle, children }) { return <main className="auth-page"><div className="auth-aside"><Brand /><div className="auth-aside-copy"><div className="eyebrow"><span className="eyebrow-dot" /> Civic intelligence for everyone</div><h1>Your voice has a <em>place</em> here.</h1><p>Every report is a step toward a safer, cleaner, more connected neighborhood.</p></div><div className="auth-quote">“The city belongs to the people who care enough to improve it.”<small>— CivicConnect community</small></div></div><div className="auth-panel"><div className="auth-box"><Link to="/" className="mobile-brand"><BrandMark /></Link><div className="auth-heading"><h2>{title}</h2><p>{subtitle}</p></div>{children}</div></div></main> }
@@ -189,6 +194,26 @@ function ComplaintDetail({ role }) {
 }
 
 function MapPage({ role }) {
+  const [complaints, setComplaints] = useState([])
+  const [severityFilters, setSeverityFilters] = useState([])
+  const [search, setSearch] = useState('')
+  const [selectedComplaint, setSelectedComplaint] = useState(null)
+
+  useEffect(() => {
+    const request = role === 'citizen' ? complaintApi.list() : complaintApi.officerList()
+    request.then((response) => setComplaints(response.data)).catch(() => setComplaints([]))
+  }, [role])
+
+  const toggleSeverity = (severity) => setSeverityFilters((current) => current.includes(severity) ? current.filter((item) => item !== severity) : [...current, severity])
+  const visible = complaints
+    .filter((item) => !severityFilters.length || severityFilters.includes(item.severity))
+    .filter((item) => !search.trim() || item.title.toLowerCase().includes(search.trim().toLowerCase()) || (item.address || '').toLowerCase().includes(search.trim().toLowerCase()))
+  const located = visible.filter((item) => item.latitude && item.longitude)
+
+  return <div className="map-page"><SectionHeading eyebrow="LIVE CIVIC MAP" title={role === 'citizen' ? 'Issues around you' : 'Nearby complaints'} action={<button className="button button-secondary"><LocateFixed size={17} /> Recenter</button>} /><div className="map-layout"><div className="map-filters"><div className="map-filter-search"><MapIcon size={17} /><input placeholder="Search by title or address" value={search} onChange={(event) => setSearch(event.target.value)} /></div><div className="map-filter-label">FILTER BY SEVERITY</div>{['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((severity) => <button key={severity} type="button" className={`map-filter-option ${severityFilters.includes(severity) ? 'active' : ''}`} onClick={() => toggleSeverity(severity)}><span className={`severity-dot ${severity.toLowerCase()}`} />{severityMeta[severity][0]}<span className="filter-count">{complaints.filter((item) => item.severity === severity).length}</span></button>)}<div className="map-filter-label">THIS AREA</div><p className="map-caption">{located.length} of {complaints.length} reports shown{severityFilters.length ? ' · filtered by severity' : ''}.</p></div><div className="leaflet-wrap">{located.length === 0 ? <div className="map-empty"><MapIcon size={28} /><span>No reports match this filter</span></div> : <MapContainer center={[located[0].latitude, located[0].longitude]} zoom={13} scrollWheelZoom><TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />{located.map((item) => <CircleMarker key={item.id} center={[item.latitude, item.longitude]} radius={10} pathOptions={{ color: severityColor(item.severity), fillColor: severityColor(item.severity), fillOpacity: 0.86 }} eventHandlers={{ click: () => setSelectedComplaint(item) }}><Popup><strong>{item.title}</strong><br /><span>{statusLabels[item.status] || item.status}</span><br /><Link to={`/${role}/complaints/${item.id}`}>View report →</Link></Popup></CircleMarker>)}</MapContainer>}{selectedComplaint && <div className="map-issue-preview" role="dialog" aria-label="Selected report preview"><button type="button" className="map-preview-close" onClick={() => setSelectedComplaint(null)} aria-label="Close report preview"><X size={16} /></button><div className="map-preview-kicker"><span className={`severity-dot ${selectedComplaint.severity.toLowerCase()}`} />{severityMeta[selectedComplaint.severity]?.[0] || 'Report'} issue</div><h3>{selectedComplaint.title}</h3><p>{selectedComplaint.address || selectedComplaint.city || 'Location captured'} · {statusLabels[selectedComplaint.status] || selectedComplaint.status}</p><Link className="button button-primary" to={`/${role}/complaints/${selectedComplaint.id}`}>Open full report <ArrowRight size={15} /></Link></div>}<div className="map-legend"><span><i className="critical" /> Critical</span><span><i className="high" /> High</span><span><i className="medium" /> Medium</span><span><i className="low" /> Low</span></div></div></div></div>
+}
+
+function MapPageLegacy({ role }) {
   const [complaints, setComplaints] = useState([])
   const [severityFilters, setSeverityFilters] = useState([])
   const [search, setSearch] = useState('')

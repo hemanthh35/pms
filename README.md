@@ -22,11 +22,7 @@ npm run dev
 
 Open `http://localhost:5173`. API docs are at `http://localhost:8000/docs`.
 
-Demo accounts:
-
-- Citizen: `citizen@civicai.app` / `citizen123`
-- Officer: `officer@civicai.app` / `officer123`
-- Admin: `admin@civicai.app` / `admin123`
+Create a citizen account from the registration page. No demo credentials are shipped with the application.
 
 The backend uses SQLite for zero-config development and supports PostgreSQL/PostGIS through `DATABASE_URL`. Docker Compose includes PostGIS and the backend service.
 
