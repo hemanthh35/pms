@@ -236,7 +236,7 @@ def get_complaint_image(complaint_id: int, db: DB, user: Annotated[User, Depends
         # ever on local disk and isn't recoverable.
         raise HTTPException(status_code=404, detail="This photo is no longer available")
     else:
-        url = f"/uploads/{complaint.image_url}"
+        url = complaint.image_url if complaint.image_url.startswith("/uploads/") else f"/uploads/{complaint.image_url}"
     return ImageUrlOut(url=url)
 
 
