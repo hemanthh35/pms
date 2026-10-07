@@ -39,6 +39,7 @@ export const complaintApi = {
   accept: (id) => api.post(`/officer/complaints/${id}/accept`),
   start: (id) => api.post(`/officer/complaints/${id}/start`),
   resolve: (id) => api.post(`/officer/complaints/${id}/resolve`),
+  imageUrl: (id) => api.get(`/complaints/${id}/image`),
   upload: (file) => {
     const body = new FormData()
     body.append('file', file)

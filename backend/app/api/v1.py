@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Annotated
 from uuid import uuid4
 
+import httpx
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import func, or_, select
@@ -20,12 +21,14 @@ from ..schemas import (
     ComplaintOut,
     ComplaintUpdate,
     DashboardOut,
+    ImageUrlOut,
     NotificationOut,
     PushSubscribeRequest,
     RegisterRequest,
     UserOut,
 )
 from ..security import create_access_token, get_user_from_token, hash_password, verify_password
+from .. import storage
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
@@ -145,11 +148,15 @@ async def upload_image(file: UploadFile = File(...), user: Annotated[User, Depen
             suffix = None
     if not suffix:
         raise HTTPException(status_code=415, detail="The uploaded file is not a valid image")
-    root = Path(get_settings().uploads_dir).resolve()
-    root.mkdir(parents=True, exist_ok=True)
-    filename = f"{user.id}-{uuid4().hex}{suffix}"
-    (root / filename).write_bytes(content)
-    return {"url": f"/uploads/{filename}"}
+    path = f"complaints/{user.id}/{uuid4().hex}{suffix}"
+    settings = get_settings()
+    if settings.supabase_url and settings.supabase_service_role_key:
+        storage.upload_image(content, file.content_type, path)
+    else:
+        local_file = Path(settings.uploads_dir).resolve() / path
+        local_file.parent.mkdir(parents=True, exist_ok=True)
+        local_file.write_bytes(content)
+    return {"url": path}
 
 
 @router.post("/complaints", response_model=ComplaintOut, status_code=201)
@@ -209,6 +216,28 @@ def get_complaint(complaint_id: int, db: DB, user: Annotated[User, Depends(curre
     if user.role == "citizen" and complaint.citizen_id != user.id:
         raise HTTPException(status_code=403, detail="You can only view your own complaints")
     return serialize_complaint(complaint)
+
+
+@router.get("/complaints/{complaint_id}/image", response_model=ImageUrlOut)
+def get_complaint_image(complaint_id: int, db: DB, user: Annotated[User, Depends(current_user)]):
+    complaint = load_complaint(db, complaint_id)
+    if user.role == "citizen" and complaint.citizen_id != user.id:
+        raise HTTPException(status_code=403, detail="You can only view your own complaints")
+    if not complaint.image_url:
+        raise HTTPException(status_code=404, detail="This complaint has no image")
+    settings = get_settings()
+    if settings.supabase_url and settings.supabase_service_role_key and complaint.image_url.startswith("complaints/"):
+        try:
+            url = storage.get_signed_url(complaint.image_url)
+        except httpx.HTTPStatusError:
+            raise HTTPException(status_code=404, detail="This photo is no longer available") from None
+    elif settings.supabase_url and settings.supabase_service_role_key:
+        # Legacy image_url from before Supabase storage was wired up — that file was only
+        # ever on local disk and isn't recoverable.
+        raise HTTPException(status_code=404, detail="This photo is no longer available")
+    else:
+        url = f"/uploads/{complaint.image_url}"
+    return ImageUrlOut(url=url)
 
 
 @router.patch("/complaints/{complaint_id}", response_model=ComplaintOut)

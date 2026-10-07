@@ -14,6 +14,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from . import storage
 from .api.v1 import router
 from .config import get_settings
 from .database import Base, SessionLocal, engine
@@ -105,6 +106,8 @@ def seed_data() -> None:
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     seed_data()
+    if settings.supabase_url and settings.supabase_service_role_key:
+        storage.ensure_bucket()
     scheduler = start_scheduler()
     yield
     scheduler.shutdown(wait=False)
@@ -141,9 +144,15 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=sorted(set(allowed_hosts
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(AuthRateLimitMiddleware)
 app.add_middleware(CORSMiddleware, allow_origins=sorted(set(allowed_origins)), allow_credentials=True, allow_methods=["GET", "POST", "PATCH", "OPTIONS"], allow_headers=["Authorization", "Content-Type"])
-uploads_dir = Path(settings.uploads_dir).resolve()
-uploads_dir.mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=uploads_dir, check_dir=False), name="uploads")
+using_supabase_storage = bool(settings.supabase_url and settings.supabase_service_role_key)
+if not using_supabase_storage:
+    # Local-disk fallback for dev environments without Supabase configured. When Supabase
+    # storage IS configured, images live in a private bucket and are only ever reachable
+    # through the authenticated, access-checked /complaints/{id}/image signed-URL endpoint —
+    # no public static mount for them.
+    uploads_dir = Path(settings.uploads_dir).resolve()
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=uploads_dir, check_dir=False), name="uploads")
 app.include_router(router, prefix="/api/v1")
 
 

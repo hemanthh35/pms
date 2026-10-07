@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import Optional
 
@@ -54,7 +55,7 @@ class ComplaintCreate(BaseModel):
     @field_validator("image_url")
     @classmethod
     def validate_image_url(cls, value: Optional[str]) -> Optional[str]:
-        if value is not None and not value.startswith("/uploads/"):
+        if value is not None and not re.fullmatch(r"complaints/\d+/[0-9a-f]{32}\.(jpg|png|webp)", value):
             raise ValueError("Images must be uploaded through the upload endpoint")
         return value
 
@@ -131,3 +132,7 @@ class NotificationOut(BaseModel):
     type: str
     is_read: bool
     created_at: datetime
+
+
+class ImageUrlOut(BaseModel):
+    url: str

@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     vapid_private_key: str = ""
     vapid_subject: str = "mailto:admin@civicconnect.app"
     sla_hours: int = 48
+    supabase_url: str = ""
+    supabase_service_role_key: str = ""
+    supabase_storage_bucket: str = "complaint-images"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
