@@ -50,6 +50,8 @@ export const complaintApi = {
 export const adminApi = {
   dashboard: () => api.get('/admin/dashboard'),
   officers: () => api.get('/admin/officers'),
+  users: () => api.get('/admin/users'),
+  updateUser: (id, payload) => api.patch(`/admin/users/${id}`, payload),
 }
 
 export const notificationApi = {

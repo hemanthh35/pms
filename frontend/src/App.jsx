@@ -82,11 +82,11 @@ function Shell({ children, kind, navItems, title, subtitle }) {
 
 const citizenNav = [{ to: '/citizen/home', label: 'Home', icon: Home }, { to: '/citizen/report', label: 'Report issue', icon: Plus }, { to: '/citizen/map', label: 'Civic map', icon: MapIcon }, { to: '/citizen/complaints', label: 'My complaints', icon: ClipboardList }, { to: '/citizen/profile', label: 'Profile', icon: UserRound }]
 const officerNav = [{ to: '/officer/home', label: 'Overview', icon: BarChart3 }, { to: '/officer/map', label: 'Live map', icon: MapIcon }, { to: '/officer/complaints', label: 'Complaints', icon: ClipboardList }, { to: '/officer/profile', label: 'Profile', icon: UserRound }]
-const adminNav = [{ to: '/admin/home', label: 'Overview', icon: BarChart3 }, { to: '/admin/complaints', label: 'All complaints', icon: ClipboardList }, { to: '/admin/officers', label: 'Officers', icon: UserRound }, { to: '/admin/analytics', label: 'Analytics', icon: Sparkles }]
+const adminNav = [{ to: '/admin/home', label: 'Overview', icon: BarChart3 }, { to: '/admin/complaints', label: 'All complaints', icon: ClipboardList }, { to: '/admin/users', label: 'User management', icon: UserRound }, { to: '/admin/analytics', label: 'Analytics', icon: Sparkles }]
 
 function CitizenShell() { return <Shell kind="citizen" navItems={citizenNav} title="Good morning" subtitle="How can we improve your area?"><Routes><Route path="home" element={<CitizenHome />} /><Route path="report" element={<ReportPage />} /><Route path="complaints" element={<ComplaintList role="citizen" />} /><Route path="complaints/:id" element={<ComplaintDetail role="citizen" />} /><Route path="map" element={<MapPage role="citizen" />} /><Route path="profile" element={<Profile />} /><Route path="*" element={<Navigate to="/citizen/home" replace />} /></Routes></Shell> }
 function OfficerShell() { return <Shell kind="officer" navItems={officerNav} title="Operations center" subtitle="Stay ahead of the issues that matter."><Routes><Route path="home" element={<OfficerHome />} /><Route path="map" element={<MapPage role="officer" />} /><Route path="complaints" element={<ComplaintList role="officer" />} /><Route path="complaints/:id" element={<ComplaintDetail role="officer" />} /><Route path="profile" element={<Profile />} /><Route path="*" element={<Navigate to="/officer/home" replace />} /></Routes></Shell> }
-function AdminShell() { return <Shell kind="admin" navItems={adminNav} title="Command center" subtitle="A clear view of your city at work."><Routes><Route path="home" element={<AdminHome />} /><Route path="complaints" element={<ComplaintList role="admin" />} /><Route path="officers" element={<Officers />} /><Route path="analytics" element={<Analytics />} /><Route path="*" element={<Navigate to="/admin/home" replace />} /></Routes></Shell> }
+function AdminShell() { return <Shell kind="admin" navItems={adminNav} title="Command center" subtitle="A clear view of your city at work."><Routes><Route path="home" element={<AdminHome />} /><Route path="complaints" element={<ComplaintList role="admin" />} /><Route path="users" element={<UserManagement />} /><Route path="officers" element={<Navigate to="/admin/users" replace />} /><Route path="analytics" element={<Analytics />} /><Route path="*" element={<Navigate to="/admin/home" replace />} /></Routes></Shell> }
 
 function SectionHeading({ eyebrow, title, action }) { return <div className="section-heading"><div>{eyebrow && <div className="section-eyebrow">{eyebrow}</div>}<h2>{title}</h2></div>{action}</div> }
 function StatCard({ label, value, tone = 'neutral', icon: Icon, detail }) { return <div className={`stat-card ${tone}`}><div className="stat-icon"><Icon size={18} /></div><div><span>{label}</span><strong>{value}</strong>{detail && <small>{detail}</small>}</div></div> }
@@ -246,7 +246,65 @@ function OfficerHome() { const [complaints, setComplaints] = useState([]); useEf
 
 function AdminHome() { const [stats, setStats] = useState({ total: 0, pending: 0, in_progress: 0, critical: 0, resolved: 0 }); useEffect(() => { adminApi.dashboard().then((r) => setStats(r.data)).catch(() => {}) }, []); return <div className="dashboard-page"><div className="welcome-row"><div><div className="section-eyebrow">SYSTEM OVERVIEW</div><h1>Good morning, Admin <span>✦</span></h1><p>Here’s the pulse of your civic operations.</p></div><button className="button button-secondary"><Bell size={17} /> Notifications</button></div><div className="stats-grid admin-stats"><StatCard label="Total complaints" value={stats.total} tone="purple" icon={ClipboardList} detail="All time" /><StatCard label="Pending review" value={stats.pending} tone="orange" icon={Clock3} detail="Across all wards" /><StatCard label="In progress" value={stats.in_progress} tone="blue" icon={Sparkles} detail="Being resolved" /><StatCard label="Resolved" value={stats.resolved} tone="green" icon={Check} detail="Citizen verified" /></div><div className="admin-overview-grid"><div className="chart-card"><SectionHeading eyebrow="LAST 30 DAYS" title="Complaint volume" action={<span className="chart-total">{stats.total} total</span>} /><div className="fake-chart"><div className="chart-y"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div><div className="chart-area"><div className="chart-fill" /><div className="chart-line" /><div className="chart-labels"><span>Sep 7</span><span>Sep 14</span><span>Sep 21</span><span>Sep 28</span><span>Oct 6</span></div></div></div></div><div className="status-card"><SectionHeading eyebrow="AT A GLANCE" title="Status split" /><div className="donut-wrap"><div className="donut"><strong>{stats.total}</strong><span>reports</span></div><div className="donut-legend"><span><i className="dot orange" /> Pending <b>{stats.pending}</b></span><span><i className="dot blue" /> In progress <b>{stats.in_progress}</b></span><span><i className="dot green" /> Resolved <b>{stats.resolved}</b></span></div></div></div></div></div> }
 
-function Officers() { const [officers, setOfficers] = useState([]); useEffect(() => { adminApi.officers().then((r) => setOfficers(r.data)).catch(() => setOfficers([])); }, []); return <div className="list-page"><SectionHeading eyebrow="PEOPLE" title="Field officers" action={<button className="button button-primary"><Plus size={17} /> Add officer</button>} /><div className="officer-grid">{officers.map((officer) => <div className="officer-card" key={officer.id}><span className="officer-avatar">{officer.name.split(' ').map((x) => x[0]).join('')}</span><div><h3>{officer.name}</h3><p>{officer.email}</p><span className="availability"><i /> Available</span></div><ChevronRight size={17} /></div>)}</div></div> }
+function UserManagement() {
+  const { user: currentUser } = useAuthContext()
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [savingId, setSavingId] = useState(null)
+  const [error, setError] = useState('')
+
+  const loadUsers = () => {
+    setLoading(true)
+    setError('')
+    adminApi.users().then((response) => setUsers(response.data)).catch((err) => setError(err.response?.data?.detail || 'Unable to load users.')).finally(() => setLoading(false))
+  }
+
+  useEffect(() => { loadUsers() }, [])
+
+  const updateUser = async (target, changes) => {
+    setSavingId(target.id)
+    setError('')
+    try {
+      const response = await adminApi.updateUser(target.id, { role: changes.role ?? target.role, is_active: changes.is_active ?? target.is_active })
+      setUsers((items) => items.map((item) => item.id === target.id ? response.data : item))
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Unable to update this user.')
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  const changeRole = (target, role) => {
+    if (role === target.role || !window.confirm(`Change ${target.name}'s role to ${role}?`)) return
+    updateUser(target, { role })
+  }
+
+  const toggleActive = (target) => {
+    if (!window.confirm(`${target.is_active ? 'Deactivate' : 'Activate'} ${target.name}'s account?`)) return
+    updateUser(target, { is_active: !target.is_active })
+  }
+
+  return <div className="list-page user-management-page">
+    <SectionHeading eyebrow="ACCESS CONTROL" title="User management" action={<button className="button button-secondary" onClick={loadUsers}>Refresh</button>} />
+    <p className="user-management-description">Promote citizens to officers or admins, and control account access from one place.</p>
+    {error && <ErrorMessage>{error}</ErrorMessage>}
+    {loading ? <LoadingBlock /> : <div className="user-table">
+      <div className="user-row user-row-heading"><span>User</span><span>Email</span><span>Role</span><span>Status</span><span>Action</span></div>
+      {users.map((target) => {
+        const isSelf = target.id === currentUser.id
+        const initials = target.name.split(' ').map((part) => part[0]).join('').slice(0, 2)
+        return <div className="user-row" key={target.id}>
+          <div className="user-cell user-identity"><span className="officer-avatar">{initials}</span><div><strong>{target.name}</strong>{isSelf && <small>Your account</small>}</div></div>
+          <span className="user-cell user-email">{target.email}</span>
+          <select className="user-role-select" value={target.role} disabled={isSelf || savingId === target.id} onChange={(event) => changeRole(target, event.target.value)} aria-label={`Role for ${target.name}`}><option value="citizen">Citizen</option><option value="officer">Officer</option><option value="admin">Admin</option></select>
+          <span className={`user-status ${target.is_active ? 'active' : 'inactive'}`}>{target.is_active ? 'Active' : 'Inactive'}</span>
+          <button className="button button-ghost user-action" disabled={isSelf || savingId === target.id} onClick={() => toggleActive(target)}>{target.is_active ? 'Deactivate' : 'Activate'}</button>
+        </div>
+      })}
+      {!users.length && <EmptyState title="No users yet" description="Registered accounts will appear here." />}
+    </div>}
+  </div>
+}
 function Analytics() { return <div className="list-page"><SectionHeading eyebrow="INSIGHTS" title="Civic analytics" /><div className="analytics-callout"><div className="impact-spark"><Sparkles size={20} /></div><div><h2>Road damage is the leading signal</h2><p>Pothole and road damage reports are up 18% this month. Ward 12 has the highest concentration of active reports.</p></div></div><div className="stats-grid"><StatCard label="Avg. resolution time" value="18.4h" tone="blue" icon={Clock3} detail="↓ 12% from last month" /><StatCard label="SLA compliance" value="92%" tone="green" icon={ShieldCheck} detail="Across all departments" /><StatCard label="Duplicate reports" value="14" tone="orange" icon={ClipboardList} detail="Linked this month" /></div></div> }
 function Profile() { const { user, logout } = useAuthContext(); return <div className="profile-page"><SectionHeading eyebrow="YOUR ACCOUNT" title="Profile" /><div className="profile-card"><span className="profile-avatar">{user.name.split(' ').map((x) => x[0]).join('').slice(0, 2)}</span><div><h2>{user.name}</h2><p>{user.email}</p><span className="status-badge status-resolved">{user.role}</span></div></div><button className="button button-ghost" onClick={logout}><LogOut size={17} /> Sign out</button></div> }
 function LoadingBlock() { return <div className="loading-block"><div /><div /><div /></div> }

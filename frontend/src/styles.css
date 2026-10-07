@@ -93,3 +93,33 @@ button { cursor: pointer; }
   .map-preview-kicker { display: flex; align-items: center; gap: 6px; color: #6c8273; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
   .map-preview-close { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 7px; background: #f0f5f0; color: #73877a; }
 }
+
+.user-management-description { margin: -7px 0 22px; color: #87978e; font-size: 12px; }
+.user-table { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.user-row { display: grid; grid-template-columns: minmax(190px, 1.2fr) minmax(210px, 1.35fr) 135px 90px 120px; gap: 15px; align-items: center; padding: 14px 17px; border-bottom: 1px solid #edf2ed; font-size: 11px; }
+.user-row:last-child { border-bottom: 0; }
+.user-row-heading { background: #f7faf7; color: #8c9b92; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.user-cell { min-width: 0; }
+.user-identity { display: flex; align-items: center; gap: 10px; }
+.user-identity strong, .user-identity small { display: block; }
+.user-identity strong { font-size: 12px; }
+.user-identity small { margin-top: 3px; color: #91a098; font-size: 9px; }
+.user-email { overflow: hidden; color: #7c8e83; text-overflow: ellipsis; white-space: nowrap; }
+.user-role-select { width: 100%; border: 1px solid #dce6df; border-radius: 8px; background: #fff; padding: 9px 8px; color: var(--ink); font: inherit; outline: none; }
+.user-role-select:focus { border-color: #79a98b; box-shadow: 0 0 0 3px #e4f1e6; }
+.user-role-select:disabled { cursor: not-allowed; opacity: .65; }
+.user-status { display: inline-flex; width: max-content; border-radius: 999px; padding: 5px 8px; font-size: 9px; font-weight: 700; }
+.user-status.active { color: #4f9565; background: #e5f2e7; }
+.user-status.inactive { color: #b15d4d; background: #fbe9e5; }
+.user-action { padding: 8px 10px; font-size: 10px; }
+
+@media (max-width: 720px) {
+  .user-table { border: 0; background: transparent; overflow: visible; }
+  .user-row-heading { display: none; }
+  .user-row { grid-template-columns: 1fr auto; gap: 11px; margin-bottom: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: #fff; }
+  .user-identity { grid-column: 1 / -1; }
+  .user-email { grid-column: 1 / -1; }
+  .user-role-select { grid-column: 1; }
+  .user-status { grid-column: 2; align-self: center; }
+  .user-action { grid-column: 1 / -1; width: 100%; justify-content: center; }
+}

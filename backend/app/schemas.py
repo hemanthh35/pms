@@ -16,6 +16,16 @@ class UserOut(BaseModel):
     role: str
 
 
+class AdminUserOut(UserOut):
+    is_active: bool
+    created_at: datetime
+
+
+class AdminUserUpdate(BaseModel):
+    role: Literal["citizen", "officer", "admin"]
+    is_active: bool
+
+
 class AuthRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=1, max_length=128)

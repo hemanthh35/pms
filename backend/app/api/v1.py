@@ -17,6 +17,8 @@ from ..scheduler import OPEN_STATUSES
 from ..schemas import (
     AuthRequest,
     AuthResponse,
+    AdminUserOut,
+    AdminUserUpdate,
     ComplaintCreate,
     ComplaintOut,
     ComplaintUpdate,
@@ -339,6 +341,39 @@ def admin_dashboard(db: DB, user: Annotated[User, Depends(require_roles("admin")
 @router.get("/admin/officers", response_model=list[UserOut])
 def admin_officers(db: DB, user: Annotated[User, Depends(require_roles("admin"))]):
     return db.scalars(select(User).where(User.role == "officer").order_by(User.name)).all()
+
+
+@router.get("/admin/users", response_model=list[AdminUserOut])
+def admin_users(db: DB, user: Annotated[User, Depends(require_roles("admin"))]):
+    return db.scalars(select(User).order_by(User.created_at.desc(), User.id.desc())).all()
+
+
+@router.patch("/admin/users/{user_id}", response_model=AdminUserOut)
+def update_admin_user(
+    user_id: int,
+    payload: AdminUserUpdate,
+    db: DB,
+    user: Annotated[User, Depends(require_roles("admin"))],
+):
+    target = db.get(User, user_id)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if target.id == user.id and (payload.role != "admin" or not payload.is_active):
+        raise HTTPException(status_code=400, detail="You cannot demote or deactivate your own admin account")
+
+    if target.role == "admin" and (payload.role != "admin" or not payload.is_active):
+        active_admins = db.scalar(
+            select(func.count(User.id)).where(User.role == "admin", User.is_active.is_(True))
+        ) or 0
+        if active_admins <= 1:
+            raise HTTPException(status_code=400, detail="At least one active admin account is required")
+
+    target.role = payload.role
+    target.is_active = payload.is_active
+    db.commit()
+    db.refresh(target)
+    return target
 
 
 @router.get("/push/vapid-public-key")
