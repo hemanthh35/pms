@@ -7,6 +7,7 @@ from .config import get_settings
 from .models import User
 
 ALGORITHM = "HS256"
+PBKDF2_ITERATIONS = 600_000
 
 
 def hash_password(password: str) -> str:
@@ -14,8 +15,8 @@ def hash_password(password: str) -> str:
     import secrets
 
     salt = secrets.token_hex(16)
-    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 120_000).hex()
-    return f"pbkdf2$120000${salt}${digest}"
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), PBKDF2_ITERATIONS).hex()
+    return f"pbkdf2${PBKDF2_ITERATIONS}${salt}${digest}"
 
 
 def verify_password(password: str, encoded: str) -> bool:
@@ -44,4 +45,3 @@ def get_user_from_token(token: str, db: Session) -> User | None:
     except (JWTError, ValueError, TypeError):
         return None
     return db.get(User, user_id)
-

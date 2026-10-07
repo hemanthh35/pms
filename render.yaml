@@ -23,6 +23,8 @@ services:
         value: https://civicconnect.onrender.com
       - key: PYTHONUNBUFFERED
         value: "1"
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
     disk:
       name: civicconnect-data
       mountPath: /var/data

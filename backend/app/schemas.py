@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class UserOut(BaseModel):
@@ -15,12 +17,13 @@ class UserOut(BaseModel):
 
 class AuthRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=6)
+    password: str = Field(min_length=1, max_length=128)
 
 
 class RegisterRequest(AuthRequest):
     name: str = Field(min_length=2, max_length=120)
-    phone: Optional[str] = None
+    password: str = Field(min_length=12, max_length=128)
+    phone: Optional[str] = Field(default=None, max_length=30)
     role: str = "citizen"
 
 
@@ -44,17 +47,24 @@ class ComplaintCreate(BaseModel):
     title: str = Field(min_length=2, max_length=160)
     description: str = Field(min_length=2)
     category: str = "Other"
-    severity: str = "MEDIUM"
+    severity: Literal["CRITICAL", "HIGH", "MEDIUM", "LOW"] = "MEDIUM"
     image_url: Optional[str] = None
     location: Optional[LocationInput] = None
+
+    @field_validator("image_url")
+    @classmethod
+    def validate_image_url(cls, value: Optional[str]) -> Optional[str]:
+        if value is not None and not value.startswith("/uploads/"):
+            raise ValueError("Images must be uploaded through the upload endpoint")
+        return value
 
 
 class ComplaintUpdate(BaseModel):
     title: Optional[str] = Field(default=None, min_length=2, max_length=160)
     description: Optional[str] = Field(default=None, min_length=2)
     category: Optional[str] = None
-    severity: Optional[str] = None
-    status: Optional[str] = None
+    severity: Optional[Literal["CRITICAL", "HIGH", "MEDIUM", "LOW"]] = None
+    status: Optional[Literal["SUBMITTED", "PENDING_REVIEW", "ASSIGNED", "ACKNOWLEDGED", "IN_PROGRESS", "RESOLUTION_SUBMITTED", "AWAITING_CITIZEN_VERIFICATION", "RESOLVED", "REOPENED"]] = None
     comment: Optional[str] = None
 
 

@@ -14,6 +14,7 @@ export async function enablePushNotifications() {
     const permission = await Notification.requestPermission()
     if (permission !== 'granted') return false
     const { data } = await api.get('/push/vapid-public-key')
+    if (!data.key) return false
     let subscription = await registration.pushManager.getSubscription()
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({

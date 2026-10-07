@@ -16,6 +16,8 @@ def notify_user(db: Session, user_id: int, title: str, message: str, type_: str 
     db.add(Notification(user_id=user_id, complaint_id=complaint_id, title=title, message=message, type=type_))
 
     settings = get_settings()
+    if not settings.vapid_private_key:
+        return
     subscriptions = db.scalars(select(PushSubscription).where(PushSubscription.user_id == user_id)).all()
     for sub in subscriptions:
         try:

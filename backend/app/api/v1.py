@@ -30,6 +30,7 @@ from ..security import create_access_token, get_user_from_token, hash_password, 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 DB = Annotated[Session, Depends(get_db)]
+MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
 
 def current_user(token: Annotated[str, Depends(oauth2_scheme)], db: DB) -> User:
@@ -127,12 +128,25 @@ async def upload_image(file: UploadFile = File(...), user: Annotated[User, Depen
     allowed = {"image/jpeg", "image/png", "image/webp"}
     if file.content_type not in allowed:
         raise HTTPException(status_code=415, detail="Only JPEG, PNG, and WebP images are accepted")
-    content = await file.read()
-    if len(content) > 8 * 1024 * 1024:
+    content = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="Image must be smaller than 8 MB")
+    signatures = {
+        "image/jpeg": (b"\xff\xd8\xff", ".jpg"),
+        "image/png": (b"\x89PNG\r\n\x1a\n", ".png"),
+    }
+    detected_suffix = signatures.get(file.content_type, (None, None))
+    is_webp = file.content_type == "image/webp" and len(content) >= 12 and content[:4] == b"RIFF" and content[8:12] == b"WEBP"
+    if file.content_type == "image/webp":
+        suffix = ".webp" if is_webp else None
+    else:
+        signature, suffix = detected_suffix
+        if not signature or not content.startswith(signature):
+            suffix = None
+    if not suffix:
+        raise HTTPException(status_code=415, detail="The uploaded file is not a valid image")
     root = Path(get_settings().uploads_dir).resolve()
     root.mkdir(parents=True, exist_ok=True)
-    suffix = Path(file.filename or "image.jpg").suffix.lower() or ".jpg"
     filename = f"{user.id}-{uuid4().hex}{suffix}"
     (root / filename).write_bytes(content)
     return {"url": f"/uploads/{filename}"}
