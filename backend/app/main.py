@@ -117,10 +117,15 @@ if not production:
     allowed_origins.extend(["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173"])
 allowed_hosts = []
 if not production:
-    allowed_hosts.extend(["localhost", "127.0.0.1"])
+    allowed_hosts.extend(["localhost", "127.0.0.1", "0.0.0.0"])
 frontend_host = urlparse(settings.frontend_origin).hostname
 if frontend_host:
     allowed_hosts.append(frontend_host)
+allowed_hosts.extend(
+    host.strip().lower()
+    for host in settings.trusted_hosts.split(",")
+    if host.strip()
+)
 if production:
     allowed_hosts.append("*.onrender.com")
 
@@ -160,6 +165,14 @@ if frontend_dist.is_dir():
     frontend_assets = frontend_dist / "assets"
     if frontend_assets.is_dir():
         app.mount("/assets", StaticFiles(directory=frontend_assets), name="frontend-assets")
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon():
+        """Keep browsers that request the conventional .ico path happy."""
+        favicon_path = frontend_dist / "favicon.svg"
+        if favicon_path.is_file():
+            return FileResponse(favicon_path, media_type="image/svg+xml")
+        raise HTTPException(status_code=404, detail="Favicon not found")
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def serve_frontend(full_path: str):

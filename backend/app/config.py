@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     secret_key: str = ""
     access_token_expire_minutes: int = 1440
     frontend_origin: str = "http://localhost:5173"
+    # Comma-separated hostnames for local-network or custom-domain deployments.
+    # Keep this explicit; do not use a catch-all value in production.
+    trusted_hosts: str = ""
     uploads_dir: str = "uploads"
     frontend_dist_dir: str = ""
     vapid_public_key: str = ""

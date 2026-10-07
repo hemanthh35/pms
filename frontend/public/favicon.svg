@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="CivicConnect">
+  <rect width="64" height="64" rx="16" fill="#10231b"/>
+  <path d="M17 42c12-2 22-10 25-24 6 12 1 28-13 31-7 1-12-2-12-7Z" fill="#a5d5b0"/>
+  <path d="M19 45c8-8 15-12 24-15" fill="none" stroke="#10231b" stroke-width="3" stroke-linecap="round"/>
+</svg>
