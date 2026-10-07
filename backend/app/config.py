@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     environment: str = "development"
-    database_url: str = "sqlite:///./civicconnect.db"
+    database_url: str
     secret_key: str = ""
     access_token_expire_minutes: int = 1440
     frontend_origin: str = "http://localhost:5173"
@@ -27,13 +27,14 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @model_validator(mode="after")
-    def require_persistent_production_database(self):
+    def validate_database_configuration(self):
+        database_scheme = self.database_url.lower()
+        if not database_scheme.startswith(("postgres://", "postgresql://", "postgresql+psycopg://")):
+            raise ValueError("DATABASE_URL must be a Supabase PostgreSQL connection string.")
         if not self.secret_key:
             if self.environment.lower() in {"production", "prod"}:
                 raise ValueError("Production requires SECRET_KEY to be set.")
             self.secret_key = token_urlsafe(32)
-        if self.environment.lower() in {"production", "prod"} and self.database_url.lower().startswith("sqlite"):
-            raise ValueError("Production requires a persistent PostgreSQL DATABASE_URL; SQLite is disabled.")
         if self.environment.lower() in {"production", "prod"}:
             if len(self.secret_key) < 32:
                 raise ValueError("Production requires a generated SECRET_KEY of at least 32 characters.")

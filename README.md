@@ -4,7 +4,7 @@ Smart civic complaint management MVP built from the provided product requirement
 
 ## Run locally
 
-Backend (FastAPI, SQLite by default):
+Backend (FastAPI + Supabase PostgreSQL):
 
 ```powershell
 cd backend
@@ -24,6 +24,6 @@ Open `http://localhost:5173`. API docs are at `http://localhost:8000/docs`.
 
 Create a citizen account from the registration page. No demo credentials are shipped with the application.
 
-The backend uses SQLite for zero-config development and supports PostgreSQL/PostGIS through `DATABASE_URL`. Docker Compose includes PostGIS and the backend service.
+Set `DATABASE_URL` to your Supabase PostgreSQL connection string before starting the backend. Docker Compose includes a PostgreSQL service for local container testing.
 
 AI is intentionally not part of this MVP. The citizen enters and reviews all complaint details manually.

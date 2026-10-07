@@ -25,6 +25,18 @@ services:
         value: "1"
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "60"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: complaint-images
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:admin@civicconnect.app
     disk:
       name: civicconnect-data
       mountPath: /var/data

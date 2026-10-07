@@ -18,7 +18,7 @@ Browser → Render Web Service → FastAPI
 5. Set `DATABASE_URL` in Render to the Supabase PostgreSQL connection string.
 6. Check `/health` after the deploy. It now verifies the database connection.
 
-Production uses Supabase PostgreSQL for complaint data. The Render persistent disk at `/var/data` stores uploaded images only. A paid Render plan is required for that disk. Production refuses to start with SQLite, preventing a deploy from silently creating a new empty database.
+The application uses Supabase PostgreSQL for complaint data. The Render persistent disk at `/var/data` stores uploaded images only. A paid Render plan is required for that disk.
 
 ## Production security
 
@@ -51,6 +51,6 @@ Open `http://localhost:5173`. Vite proxies `/api` and `/uploads` to FastAPI.
 docker build -t civicconnect .
 docker run --rm -p 10000:10000 `
   -e SECRET_KEY="local-development-secret-change-me" `
-  -e DATABASE_URL="sqlite:////var/data/civicconnect.db" `
+  -e DATABASE_URL="postgresql+psycopg://postgres:<password>@<supabase-host>:5432/postgres" `
   civicconnect
 ```
