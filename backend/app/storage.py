@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import httpx
 
 from .config import get_settings
@@ -68,3 +70,26 @@ def get_signed_url(path: str, expires_in: int = 300) -> str:
         response.raise_for_status()
         signed_path = response.json()["signedURL"]
     return f"{base}/storage/v1{signed_path}"
+
+
+def delete_image(path: str) -> None:
+    """Delete an uploaded image from Supabase Storage or the local upload root."""
+    settings = get_settings()
+    if settings.supabase_url and settings.supabase_service_role_key:
+        base = settings.supabase_url.rstrip("/")
+        bucket = settings.supabase_storage_bucket
+        with httpx.Client(timeout=20) as client:
+            response = client.delete(
+                f"{base}/storage/v1/object/{bucket}/{path}",
+                headers=_headers(settings),
+            )
+            if response.status_code != 404:
+                response.raise_for_status()
+        return
+
+    uploads_root = Path(settings.uploads_dir).resolve()
+    local_path = (uploads_root / path).resolve()
+    if uploads_root not in local_path.parents:
+        raise ValueError("Invalid storage path")
+    if local_path.is_file():
+        local_path.unlink()

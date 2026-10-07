@@ -112,6 +112,22 @@ button { cursor: pointer; }
 .user-status.active { color: #4f9565; background: #e5f2e7; }
 .user-status.inactive { color: #b15d4d; background: #fbe9e5; }
 .user-action { padding: 8px 10px; font-size: 10px; }
+.admin-complaint-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.admin-delete-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #f0cfc8; border-radius: 8px; background: #fff7f5; color: #b55345; padding: 10px 11px; font-size: 10px; font-weight: 700; cursor: pointer; }
+.admin-delete-button:hover { background: #fcece8; }
+.live-status-card { min-height: 0; }
+.live-status-list { display: grid; gap: 16px; }
+.live-status-row { display: grid; gap: 7px; }
+.live-status-label { display: flex; justify-content: space-between; gap: 10px; color: #718278; font-size: 11px; }
+.live-status-label span { display: inline-flex; align-items: center; gap: 7px; }
+.live-status-label strong { color: var(--ink); }
+.live-status-track { height: 7px; overflow: hidden; border-radius: 999px; background: #edf2ed; }
+.live-status-track span { display: block; height: 100%; min-width: 0; border-radius: inherit; }
+.live-status-track span.orange { background: #e99445; }.live-status-track span.blue { background: #6e97b3; }.live-status-track span.green { background: #5d9d6b; }.live-status-track span.red { background: #dc5b45; }.live-status-track span.purple { background: #8069aa; }
+.admin-facts { display: grid; gap: 15px; }
+.admin-facts div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #edf2ed; }
+.admin-facts span { color: #84938b; font-size: 11px; }.admin-facts strong { font-size: 20px; }
+.admin-data-note { margin: 18px 0 0; color: #93a198; font-size: 10px; line-height: 1.5; }
 
 @media (max-width: 720px) {
   .user-table { border: 0; background: transparent; overflow: visible; }
@@ -122,4 +138,6 @@ button { cursor: pointer; }
   .user-role-select { grid-column: 1; }
   .user-status { grid-column: 2; align-self: center; }
   .user-action { grid-column: 1 / -1; width: 100%; justify-content: center; }
+  .admin-complaint-row { grid-template-columns: 1fr; }
+  .admin-delete-button { width: 100%; }
 }

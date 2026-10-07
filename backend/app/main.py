@@ -143,7 +143,7 @@ app = FastAPI(
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=sorted(set(allowed_hosts)))
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(AuthRateLimitMiddleware)
-app.add_middleware(CORSMiddleware, allow_origins=sorted(set(allowed_origins)), allow_credentials=True, allow_methods=["GET", "POST", "PATCH", "OPTIONS"], allow_headers=["Authorization", "Content-Type"])
+app.add_middleware(CORSMiddleware, allow_origins=sorted(set(allowed_origins)), allow_credentials=True, allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"], allow_headers=["Authorization", "Content-Type"])
 using_supabase_storage = bool(settings.supabase_url and settings.supabase_service_role_key)
 if not using_supabase_storage:
     # Local-disk fallback for dev environments without Supabase configured. When Supabase

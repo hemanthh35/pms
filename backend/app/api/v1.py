@@ -6,7 +6,7 @@ from uuid import uuid4
 import httpx
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from ..config import get_settings
@@ -283,6 +283,32 @@ def officer_complaints(db: DB, user: Annotated[User, Depends(require_roles("offi
     if user.role == "officer":
         query = query.where(or_(Complaint.assigned_officer_id == user.id, Complaint.assigned_officer_id.is_(None)))
     return [serialize_complaint(item) for item in db.scalars(query).all()]
+
+
+@router.delete("/admin/complaints/{complaint_id}", status_code=204)
+def delete_admin_complaint(complaint_id: int, db: DB, user: Annotated[User, Depends(require_roles("admin"))]):
+    complaint = db.scalar(
+        select(Complaint)
+        .options(selectinload(Complaint.proofs))
+        .where(Complaint.id == complaint_id)
+    )
+    if not complaint:
+        raise HTTPException(status_code=404, detail="Complaint not found")
+
+    image_paths = [proof.image_url for proof in complaint.proofs if proof.image_url]
+    if complaint.image_url:
+        image_paths.append(complaint.image_url)
+    try:
+        for image_path in image_paths:
+            storage.delete_image(image_path)
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail="Could not remove complaint files") from exc
+
+    db.execute(delete(Notification).where(Notification.complaint_id == complaint.id))
+    db.execute(delete(ComplaintHistory).where(ComplaintHistory.complaint_id == complaint.id))
+    db.execute(delete(ResolutionProof).where(ResolutionProof.complaint_id == complaint.id))
+    db.execute(delete(Complaint).where(Complaint.id == complaint.id))
+    db.commit()
 
 
 @router.post("/officer/complaints/{complaint_id}/accept", response_model=ComplaintOut)

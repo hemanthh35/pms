@@ -35,6 +35,7 @@ export const complaintApi = {
   get: (id) => api.get(`/complaints/${id}`),
   create: (payload) => api.post('/complaints', payload),
   update: (id, payload) => api.patch(`/complaints/${id}`, payload),
+  remove: (id) => api.delete(`/admin/complaints/${id}`),
   verify: (id, accepted) => api.post(`/complaints/${id}/verify`, null, { params: { accepted } }),
   accept: (id) => api.post(`/officer/complaints/${id}/accept`),
   start: (id) => api.post(`/officer/complaints/${id}/start`),
