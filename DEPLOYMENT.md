@@ -20,6 +20,15 @@ Browser → Render Web Service → FastAPI
 
 Production uses Supabase PostgreSQL for complaint data. The Render persistent disk at `/var/data` stores uploaded images only. A paid Render plan is required for that disk. Production refuses to start with SQLite, preventing a deploy from silently creating a new empty database.
 
+## Production security
+
+- Set `ENVIRONMENT=production`, a generated `SECRET_KEY`, and the Supabase `DATABASE_URL` in Render.
+- Authentication endpoints are rate-limited; production API docs are disabled.
+- CORS is restricted to `FRONTEND_ORIGIN`, and security headers/CSP are enabled.
+- Passwords use PBKDF2-SHA256 with 600,000 iterations.
+- Uploads are capped at 8 MB and validated by image signatures, not only file extensions.
+- Set both `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` only if browser push notifications are required.
+
 ## Local development
 
 ```powershell
