@@ -20,7 +20,7 @@ services:
       - key: FRONTEND_DIST_DIR
         value: /app/frontend/dist
       - key: FRONTEND_ORIGIN
-        value: https://civicconnect.onrender.com
+        value: https://pms-5n65.onrender.com
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
