@@ -55,15 +55,30 @@ function Landing() {
 function BrandMark() { return <><span className="brand-mark"><Leaf size={17} /></span><span>Civic<span>Connect</span></span></> }
 function Brand() { return <Link to="/" className="brand"><BrandMark /></Link> }
 
+function formatApiError(error, fallback = 'An unexpected error occurred.') {
+  if (!error) return fallback
+  if (typeof error === 'string') return error
+  if (Array.isArray(error)) {
+    return error.map((item) => (typeof item === 'object' && item?.msg ? item.msg : String(item))).join('. ')
+  }
+  if (typeof error === 'object') {
+    if (error.msg) return error.msg
+    if (error.message) return error.message
+    if (error.detail) return formatApiError(error.detail, fallback)
+    return JSON.stringify(error)
+  }
+  return String(error)
+}
+
 function Login() {
   const { login } = useAuthContext(); const navigate = useNavigate(); const [form, setForm] = useState({ email: '', password: '' }); const [error, setError] = useState(''); const [loading, setLoading] = useState(false)
-  const submit = async (event) => { event.preventDefault(); setError(''); setLoading(true); try { const response = await authApi.login(form); login(response); navigate(`/${response.data.user.role}/home`) } catch (err) { setError(err.response?.data?.detail || 'Unable to sign in. Check the API is running.') } finally { setLoading(false) } }
+  const submit = async (event) => { event.preventDefault(); setError(''); setLoading(true); try { const response = await authApi.login(form); login(response); navigate(`/${response.data.user.role}/home`) } catch (err) { setError(formatApiError(err.response?.data?.detail, 'Unable to sign in. Check your email and password.')) } finally { setLoading(false) } }
   return <AuthLayout title="Welcome back" subtitle="Sign in to keep your city moving forward."><form className="auth-form" onSubmit={submit}>{error && <ErrorMessage>{error}</ErrorMessage>}<label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" required /></label><PasswordField value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete="current-password" /><button className="button button-primary button-full" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'} <ArrowRight size={17} /></button></form><p className="auth-footer">New to CivicConnect? <Link to="/register">Create an account</Link></p></AuthLayout>
 }
 
 function Register() {
   const { login } = useAuthContext(); const navigate = useNavigate(); const [form, setForm] = useState({ name: '', email: '', password: '' }); const [error, setError] = useState(''); const [loading, setLoading] = useState(false)
-  const submit = async (event) => { event.preventDefault(); setError(''); setLoading(true); try { const response = await authApi.register(form); login(response); navigate('/citizen/home') } catch (err) { setError(err.response?.data?.detail || 'Unable to create your account.') } finally { setLoading(false) } }
+  const submit = async (event) => { event.preventDefault(); setError(''); setLoading(true); try { const response = await authApi.register(form); login(response); navigate('/citizen/home') } catch (err) { setError(formatApiError(err.response?.data?.detail, 'Unable to create your account.')) } finally { setLoading(false) } }
   return <AuthLayout title="Join the movement" subtitle="A better city starts with noticing what needs care."><form className="auth-form" onSubmit={submit}>{error && <ErrorMessage>{error}</ErrorMessage>}<label>Your name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" required /></label><label>Email<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" required /></label><PasswordField value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} minLength="6" autoComplete="new-password" /><button className="button button-primary button-full" disabled={loading}>{loading ? 'Creating account…' : 'Create citizen account'} <ArrowRight size={17} /></button></form><p className="auth-footer">Already have an account? <Link to="/login">Sign in</Link></p></AuthLayout>
 }
 
@@ -73,7 +88,7 @@ function PasswordField({ value, onChange, minLength, autoComplete }) {
 }
 
 function AuthLayout({ title, subtitle, children }) { return <main className="auth-page"><div className="auth-aside"><Brand /><div className="auth-aside-copy"><div className="eyebrow"><span className="eyebrow-dot" /> Civic intelligence for everyone</div><h1>Your voice has a <em>place</em> here.</h1><p>Every report is a step toward a safer, cleaner, more connected neighborhood.</p></div><div className="auth-quote">“The city belongs to the people who care enough to improve it.”<small>— CivicConnect community</small></div></div><div className="auth-panel"><div className="auth-box"><Link to="/" className="mobile-brand"><BrandMark /></Link><div className="auth-heading"><h2>{title}</h2><p>{subtitle}</p></div>{children}</div></div></main> }
-function ErrorMessage({ children }) { return <div className="error-message"><AlertCircle size={16} /> {children}</div> }
+function ErrorMessage({ children }) { return <div className="error-message"><AlertCircle size={16} /> <span>{formatApiError(children)}</span></div> }
 
 function Shell({ children, kind, navItems, title, subtitle }) {
   const { user, logout } = useAuthContext(); const location = useLocation(); const [mobileOpen, setMobileOpen] = useState(false)

@@ -33,7 +33,7 @@ class AuthRequest(BaseModel):
 
 class RegisterRequest(AuthRequest):
     name: str = Field(min_length=2, max_length=120)
-    password: str = Field(min_length=12, max_length=128)
+    password: str = Field(min_length=6, max_length=128)
     phone: Optional[str] = Field(default=None, max_length=30)
     role: str = "citizen"
 
